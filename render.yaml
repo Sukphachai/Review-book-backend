@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: review-book-backend
+    runtime: docker
+    plan: free
+    branch: main
+    healthCheckPath: /health
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+      - key: ALLOWED_ORIGINS
+        sync: false
+      - key: AUTO_MIGRATE
+        value: "true"
