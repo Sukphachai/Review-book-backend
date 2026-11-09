@@ -249,7 +249,55 @@ Base URL สำหรับ Go Backend: `http://localhost:8080` (Local) หร�
 
 ---
 
-## 4. Admin Management (เฉพาะบทบาท admin)
+## 4. Favorites (หนังสือเล่มโปรด)
+
+### 4.1 ดูหนังสือเล่มโปรดทั้งหมดของตนเอง
+- **Method**: `GET`
+- **Path**: `/api/me/favorites`
+- **Auth**: `Authorization: Bearer <token>`
+- **Response**:
+  - `200 OK`:
+    ```json
+    {
+      "items": [
+        {
+          "id": 1,
+          "title": "Atomic Habits",
+          "author": "James Clear",
+          "category": "พัฒนาตนเอง",
+          "coverImage": "https://...",
+          "price": 295,
+          "rating": 4.9,
+          "reviewCount": 3
+        }
+      ]
+    }
+    ```
+
+### 4.2 ดู ID หนังสือเล่มโปรดทั้งหมดของตนเอง
+- **Method**: `GET`
+- **Path**: `/api/me/favorites/ids`
+- **Auth**: `Authorization: Bearer <token>`
+- **Response**:
+  - `200 OK`: `{ "ids": [1, 3, 5] }`
+
+### 4.3 เพิ่มหนังสือเข้าเล่มโปรด
+- **Method**: `POST`
+- **Path**: `/api/books/:id/favorite`
+- **Auth**: `Authorization: Bearer <token>`
+- **Response**:
+  - `201 Created`: `{ "message": "เพิ่มหนังสือเล่มโปรดเรียบร้อยแล้ว", "bookId": 1 }`
+
+### 4.4 ยกเลิกหนังสือเล่มโปรด
+- **Method**: `DELETE`
+- **Path**: `/api/books/:id/favorite`
+- **Auth**: `Authorization: Bearer <token>`
+- **Response**:
+  - `200 OK`: `{ "message": "ยกเลิกหนังสือเล่มโปรดเรียบร้อยแล้ว", "bookId": 1 }`
+
+---
+
+## 5. Admin Management (เฉพาะบทบาท admin)
 
 ### 4.1 สถิติระบบหลังบ้าน (Dashboard Stats)
 - **Method**: `GET`

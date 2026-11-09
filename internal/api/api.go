@@ -106,6 +106,10 @@ func New(db *pgxpool.Pool, cfg Config) http.Handler {
 	add("GET /api/books/{id}/reviews", false, false, s.reviews)
 	add("POST /api/books/{id}/reviews", true, false, s.createReview)
 	add("GET /api/me/reviews", true, false, s.myReviews)
+	add("GET /api/me/favorites", true, false, s.myFavorites)
+	add("GET /api/me/favorites/ids", true, false, s.myFavoriteIDs)
+	add("POST /api/books/{id}/favorite", true, false, s.addFavorite)
+	add("DELETE /api/books/{id}/favorite", true, false, s.removeFavorite)
 	add("PUT /api/reviews/{id}", true, false, s.updateReview)
 	add("DELETE /api/reviews/{id}", true, false, s.deleteReview)
 	add("GET /api/admin/stats", true, true, s.stats)
@@ -608,6 +612,73 @@ func (s *Server) reviews(w http.ResponseWriter, r *http.Request) error {
 }
 func (s *Server) myReviews(w http.ResponseWriter, r *http.Request) error {
 	return s.listReviews(w, r, "WHERE r.member_id=$1", current(r).ID)
+}
+func (s *Server) myFavorites(w http.ResponseWriter, r *http.Request) error {
+	m := current(r)
+	rows, e := s.db.Query(r.Context(), bookQuery+`JOIN bookreview.favorites f ON f.book_id = b.id WHERE f.member_id = $1 GROUP BY b.id, f.created_at ORDER BY f.created_at DESC`, m.ID)
+	if e != nil {
+		return e
+	}
+	defer rows.Close()
+	items := []Book{}
+	for rows.Next() {
+		b, e := scanBook(rows)
+		if e != nil {
+			return e
+		}
+		items = append(items, b)
+	}
+	if e = rows.Err(); e != nil {
+		return e
+	}
+	return reply(w, 200, map[string]any{"items": items})
+}
+func (s *Server) myFavoriteIDs(w http.ResponseWriter, r *http.Request) error {
+	m := current(r)
+	rows, e := s.db.Query(r.Context(), `SELECT book_id FROM bookreview.favorites WHERE member_id = $1 ORDER BY created_at DESC`, m.ID)
+	if e != nil {
+		return e
+	}
+	defer rows.Close()
+	ids := []int64{}
+	for rows.Next() {
+		var id int64
+		if e = rows.Scan(&id); e != nil {
+			return e
+		}
+		ids = append(ids, id)
+	}
+	if e = rows.Err(); e != nil {
+		return e
+	}
+	return reply(w, 200, map[string]any{"ids": ids})
+}
+func (s *Server) addFavorite(w http.ResponseWriter, r *http.Request) error {
+	id, e := pathID(r)
+	if e != nil {
+		return e
+	}
+	if _, e = s.getBook(r.Context(), id); e != nil {
+		return e
+	}
+	m := current(r)
+	_, e = s.db.Exec(r.Context(), `INSERT INTO bookreview.favorites(book_id, member_id) VALUES($1, $2) ON CONFLICT (book_id, member_id) DO NOTHING`, id, m.ID)
+	if e != nil {
+		return e
+	}
+	return reply(w, 201, map[string]any{"message": "เพิ่มหนังสือเล่มโปรดเรียบร้อยแล้ว", "bookId": id})
+}
+func (s *Server) removeFavorite(w http.ResponseWriter, r *http.Request) error {
+	id, e := pathID(r)
+	if e != nil {
+		return e
+	}
+	m := current(r)
+	_, e = s.db.Exec(r.Context(), `DELETE FROM bookreview.favorites WHERE book_id = $1 AND member_id = $2`, id, m.ID)
+	if e != nil {
+		return e
+	}
+	return reply(w, 200, map[string]any{"message": "ยกเลิกหนังสือเล่มโปรดเรียบร้อยแล้ว", "bookId": id})
 }
 
 type reviewInput struct {

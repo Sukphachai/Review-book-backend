@@ -28,10 +28,19 @@ CREATE TABLE IF NOT EXISTS bookreview.reviews (
  created_at timestamptz NOT NULL DEFAULT now(),
  UNIQUE(book_id, member_id)
 );
+CREATE TABLE IF NOT EXISTS bookreview.favorites (
+  id serial PRIMARY KEY,
+  book_id integer NOT NULL REFERENCES bookreview.books(id) ON DELETE CASCADE,
+  member_id integer NOT NULL REFERENCES bookreview.members(id) ON DELETE CASCADE,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  UNIQUE(book_id, member_id)
+);
 CREATE INDEX IF NOT EXISTS reviews_member_idx ON bookreview.reviews(member_id);
+CREATE INDEX IF NOT EXISTS favorites_member_idx ON bookreview.favorites(member_id);
 CREATE INDEX IF NOT EXISTS books_category_idx ON bookreview.books(category);
 -- Private schema: no browser/Supabase anon access. API connects using DATABASE_URL.
 REVOKE ALL ON SCHEMA bookreview FROM PUBLIC;
 ALTER TABLE bookreview.members ENABLE ROW LEVEL SECURITY;
 ALTER TABLE bookreview.books ENABLE ROW LEVEL SECURITY;
 ALTER TABLE bookreview.reviews ENABLE ROW LEVEL SECURITY;
+ALTER TABLE bookreview.favorites ENABLE ROW LEVEL SECURITY;
