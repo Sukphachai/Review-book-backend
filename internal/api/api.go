@@ -88,7 +88,7 @@ const bookQuery = `SELECT b.id,b.title,b.author,b.category,b.cover_image,b.descr
 const reviewQuery = `SELECT r.id,r.book_id,r.member_id,m.display_name,r.rating,r.comment,r.created_at,b.title,b.cover_image
  FROM bookreview.reviews r JOIN bookreview.members m ON m.id=r.member_id JOIN bookreview.books b ON b.id=r.book_id `
 
-var categories = []string{"ทั้งหมด", "พัฒนาตนเอง", "จิตวิทยา", "การเงินและการลงทุน", "เทคโนโลยี", "นิยายและวรรณกรรม"}
+var categories = []string{"ทั้งหมด", "พัฒนาตนเอง", "การเงินและการลงทุน", "เทคโนโลยี", "นิยายและวรรณกรรม", "ศิลปะและการท่องเที่ยว", "การศึกษา", "ประวัติศาสตร์และการปกครอง"}
 
 func New(db *pgxpool.Pool, cfg Config) http.Handler {
 	s := &Server{db: db, cfg: cfg, attempts: make(map[string]attempt)}
